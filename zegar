@@ -1,0 +1,123 @@
+function clockplot()
+
+%ogólnie stworzył to sunil anandatheertha, zmodyfikowałem lekko
+% Features:
+% 1. ANALOG + DIGITAL displays
+% 2. Black dot in the centre indicates 'P.M' and White dot in the centre indicates 'A.M'
+% 3. Indicates the year month date and the week numbers also.
+% 4. The digital display of the time is shown on the corresponding hand
+% 5. Duration of one tick of the second hand can be set
+% 6. uses opengl rendering and the hands run more smoothly than in version 1.0
+% 7. Display a complete digital display in the form H:M:S:mS... & H --> 0 to 24
+% NOTE: CLOCK STARTS AND IS MAITAINED ACCORDING 
+% TO TIME INDICATED BY THE INBUILT COMMAND "clock"
+% By Sunil Anandatheertha
+% IMPORTANT NOTE: USE CTRL+C IN COMMAND LINE or FIGURE WINDOW TO END THE PROGRAM
+
+rs=10; % radius of second hand
+n = 1;  hs=[];  hm=[];  hh=[];  digsec=[];  digmin=[];  dighr=[];  
+digdate1=[]; digdate2=[]; digdate3=[]; digdate4=[]; digdate5=[]; ampm=[];digtime1=[];
+setfigureproperties;
+setaxisproperties;
+onetick=0.0025;% (set the duration of one tick. NOTE: an approx.)
+while n<n+1
+    time = clock;
+    % analog display
+    thsec = 90+(time(6)*6);
+    thmin = 90+(time(5)*6) + (time(6)/10);
+    thhour = 90+(time(4)*30) + (time(5)/2); %thsec-thetasec
+    delete(hh);     hh  = plot([0 -0.75*rs*cosd(thhour)],[0 0.75*rs*sind(thhour)],'b','LineWidth',1.75);%hh - figure handle for hour hand
+    delete(hm);    hm = plot([0 -0.9*rs*cosd(thmin)],[0 0.9*rs*sind(thmin)],'k','LineWidth',1.5);
+    delete(hs);     hs  = plot([0 -rs*cosd(thsec)],[0 rs*sind(thsec)],'Color',[1 0 0],'LineWidth',1);
+    % \.//////////////\.//////////////\.//////////////
+    % digital display
+    delete(digsec);      digsec = text(-7.5*cosd(5+thsec),7.5*sind(5+thsec),...
+        num2str(time(6)),'FontSize',10);%digsec-digital sec
+    delete(digmin);     digmin = text(-6*cosd(4+thmin),6*sind(4+thmin),...
+        num2str(floor(time(5))+time(6)/60),'FontSize',10);
+    delete(dighr);        dighr = text(-2.5*cosd(1+thhour),2.5*sind(1+thhour),...
+        num2str(floor(time(4))+time(5)/60),'FontSize',10);
+    % \.//////////////\.//////////////\.//////////////
+ 
+    % \.//////////////\.//////////////\.//////////////
+    % \.//////////////\.//////////////\.//////////////
+    % determine am or pm
+    time = clock;     
+    x = time(4)+time(6)/3600;
+    if x>0&&x<12; 
+        coloris='w';AM='A.M'; 
+    else
+        coloris='k';AM='P.M';
+    end % Black (k) is for P.M and White (w) is for A.
+    delete(ampm);
+    ampm = fill(.5*cosd(0:20:360),.5*sind(0:20:360),coloris);
+    % \.//////////////\.//////////////\.//////////////
+    delete(digtime1);     digtime1 = text(-2.75,4,strcat(num2str(time(4)),':',...
+        num2str(time(5)),':',num2str(floor(time(6))),':',...
+        num2str((1E3*(time(6)-floor(time(6)))))),...
+        'FontSize',16,'color',[1 .3 0],...
+        'VerticalAlignment','middle',...
+        'HorizontalAlignment','left');    
+    % \.//////////////\.//////////////\.//////////////
+    axis equal
+    drawnow
+    pause(onetick)
+end
+end
+% \.//////////////\.//////////////\.//////////////
+% \.//////////////\.//////////////\.//////////////
+function setfigureproperties
+
+clear,close,clc
+% set(0,'DefaultFigureWindowStyle','docked')
+ssize = get(0,'ScreenSize');
+fig=figure('units','pixels',...
+    'menubar','none',...
+    'name','clockplot',...
+    'Position', [0 0 ssize(3) ssize(4)],...
+    'numbertitle','off',...
+    'renderer','opengl',...
+    'visible','on',...
+    'color',[1 1 1]);
+axis off,hold on
+drawcircle(1,12)
+for n=1:12
+    text(-8.5*cosd(90+(n)*360/12),8.5*sind(90+(n)*360/12),num2str(n))
+    plot([0.95*10*cosd(90+(n)*360/12) 1.1*10*cosd(90+(n)*360/12)],...
+        [0.95*10*sind(90+(n)*360/12) 1.1*10*sind(90+(n)*360/12)],...
+        'k','LineWidth',2)
+    for ns=1:5
+        plot([1.0*10*cosd(90+(n)*360/12+6*ns) 1.1*10*cosd(90+(n)*360/12+6*ns)],...
+            [1.0*10*sind(90+(n)*360/12+6*ns) 1.1*10*sind(90+(n)*360/12+6*ns)],...
+            'k','LineWidth',1)
+    end
+end
+% plot(0.95*10*cosd(3:6:363),0.95*10*sind(3:6:363),'k.','MarkerSize',1)
+ar=3:6:363; cosar=cosd(ar); sinar=sind(ar);
+x1=0.95*10*cosar; x2=0.98*10*cosar; y1=0.95*10*sinar; y2=0.97*10*sinar;
+for n=1:numel(x1)
+    plot([x1(n) x2(n)],[y1(n) y2(n)],'k')
+end
+end
+% \.//////////////\.//////////////\.//////////////
+% \.//////////////\.//////////////\.//////////////
+function setaxisproperties
+% Set the axis properties (value of the variable ax is greater than (rs+somesmallvalue))
+axis([-14 20 -14 14]);
+end
+% \.//////////////\.//////////////\.//////////////
+% \.//////////////\.//////////////\.//////////////
+function drawcircle(varargin)
+
+th=0:12:360;
+for n=1:nargin
+    if varargin{n}==max(varargin{:});plot(varargin{n}*cosd(th),varargin{n}*sind(th),'LineWidth',6)
+    elseif varargin{n}==min(varargin{:});fill(varargin{n}*cosd(th),varargin{n}*sind(th),'b')
+    else plot(varargin{n}*cosd(th),varargin{n}*sind(th),'k')
+    end
+end
+incr=45; plot(1.1*max(varargin{:})*cosd(0:incr:360),1.1*max(varargin{:})*sind(0:incr:360),'LineWidth',6)
+end
+
+% \.//////////////\.//////////////\.//////////////
+% \.//////////////\.//////////////\.//////////////
